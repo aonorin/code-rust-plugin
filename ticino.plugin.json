@@ -1,0 +1,32 @@
+{
+	"pluginId": "vs.language.rust",
+	"activationEvents": ["textModel:rust"],
+	"mainModule": "./rustMain",
+	"scripts": {
+		"compile": "node ../../node_modules/gulp/bin/gulp.js --gulpfile ../gulpfile.js compile --dir vs.language.rust"
+	},
+	"contributes": {
+		"language": [{
+			"id": "rust",
+			"aliases": ["rust","ts","rust"],
+			"extensions": [".rs"],
+			"mimetypes": ["text/rust"]
+		}],
+		"configuration": {
+			"type": "object",
+			"title": "rust configuration",
+			"properties": {
+				"rust.racerPath": {
+					"type": "string",
+					"default": "racer",
+					"description": "Racer executable path."
+				},
+				"rust.debug": {
+					"type": "boolean",
+					"default": false,
+					"description": "Output logs in console for debugging."
+				}
+			}
+		}
+	}
+}
