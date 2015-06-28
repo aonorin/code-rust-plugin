@@ -9,20 +9,13 @@ define(["require", "exports", 'monaco', 'child_process', 'path', './features/con
             function RustServiceClient() {
                 this.pathSeparator = path.sep;
                 this.cfg = Configuration.defaultConfiguration;
-                this.kinds = new Map();
-                this.kinds.set('Function', 'function');
-                this.kinds.set('Struct', 'class');
-                this.kinds.set('Type', 'type');
-                this.kinds.set('Trait', 'interface');
-                this.kinds.set('Enum', 'enum');
-                this.kinds.set('EnumVariant', 'enum');
             }
             RustServiceClient.prototype.log = function (msg) {
                 if (this.cfg.debug) {
                     console.log("RustServiceClient: " + msg);
                 }
             }
-            RustServiceClient.prototype.setConfig = function (cfg) {
+            RustServiceClient.prototype.setConfiguration = function (cfg) {
                 this.cfg = cfg;
                 this.log('Racer Path="' + this.cfg.racerPath + "'");
             }
@@ -59,20 +52,16 @@ define(["require", "exports", 'monaco', 'child_process', 'path', './features/con
                         var parts = line.substr(firstSpace + 1).split(",");
                         var name = parts[0];
                         var rustKind = parts[4];
-                        var kind = 'keyword';
-                        if (_this.kinds.has(rustKind)) {
-                            kind = _this.kinds.get(rustKind);
-                        }
-                        _this.log("match: '" + name + "' racerKind=" + rustKind + " kind=" + kind);
+                        _this.log("match: '" + name + "' racerKind=" + rustKind);
                         //racer sometime returns doublons...
                         if (matchNames.indexOf(name)<0) {
                             matches[i] = {
                                 name: name,
-                                kind: kind
+                                kind: rustKind
                             };
                             matchNames.push(name);
+                            i++;
                         }
-                        i++;
                     }
                 });
                 return matches;
