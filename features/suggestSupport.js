@@ -100,7 +100,18 @@ define(["require", "exports", 'vs/languages/lib/javascriptSnippets',
                     'u32',
                     'u64',
                     'u8',
-                    'usize'
+                    'usize', 
+                    'Box',
+                    'Option',
+                    'Path',
+                    'PathBuf',
+                    'Result',
+                    'String',
+                    'Vec',
+                    'Some',
+                    'None',
+                    'Ok',
+                    'Err'
                 ];
                 this.basicTypes = new Array();
                 for (var i = 0; i < basicTypesNames.length; i++) {
@@ -209,18 +220,9 @@ define(["require", "exports", 'vs/languages/lib/javascriptSnippets',
                 var model = this.modelService.getModel(resource);
                 var requestColumn = position.column;
                 var wordAtPosition = model.getWordAtPosition(position, false);
-                var args = [
-                    'complete',
-                    position.lineNumber,
-                    requestColumn - 1,//racer does not like end of words
-                    filepath
-                ];
                 if (wordAtPosition) {
                     requestColumn = wordAtPosition.startColumn;
                 }
-                // Need to capture the word at position before we send the request.
-                // The model can move forward while the request is evaluated.
-                var matches = this.client.execute(args);
                 var isMemberCompletion = false;
                 if (requestColumn > 0) {
                     var value = model.getValueInRange({
@@ -231,7 +233,35 @@ define(["require", "exports", 'vs/languages/lib/javascriptSnippets',
                     });
                     isMemberCompletion = value === '.';
                 }
+                var currentWord = '';
+                if (wordAtPosition && wordAtPosition.startColumn < position.column) {
+                    currentWord = wordAtPosition.word.substr(0, position.column - wordAtPosition.startColumn);
+                }
+                // Need to capture the word at position before we send the request.
+                // The model can move forward while the request is evaluated.
+                var matches = this.client.execute([
+                    'complete',
+                    position.lineNumber,
+                    requestColumn - 1,//racer does not like end of words
+                    filepath
+                ]);
                 var suggests = [];
+                if (matches.length === 0 || !isMemberCompletion) {
+                    if (currentWord.length === 0) {
+                        if (model.getValueInRange({
+                            startLineNumber: position.lineNumber,
+                            startColumn: requestColumn - 5,
+                            endLineNumber: position.lineNumber,
+                            endColumn: requestColumn - 1
+                        }) === "impl") {
+                            suggests = suggests.concat(this.traits);
+                        } else {
+                            suggests = suggests.concat(this.keywords)
+                                .concat(this.basicTypes)
+                                .concat(this.macros);
+                        }
+                    }
+                }
                 for (var i = 0; i < matches.length; i++) {
                     var element = matches[i];
                     var kind = 'keyword';
@@ -239,29 +269,10 @@ define(["require", "exports", 'vs/languages/lib/javascriptSnippets',
                         kind = this.kinds.get(element.kind);
                     }
                     suggests.push({
-                        label: element.name,
+                        label: " " + element.name,//adding a space before so racer results appear first
                         codeSnippet: element.name,
                         type: kind
                     });
-                }
-                var currentWord = '';
-                if (wordAtPosition && wordAtPosition.startColumn < position.column) {
-                    currentWord = wordAtPosition.word.substr(0, position.column - wordAtPosition.startColumn);
-                }
-                if (suggests.length === 0 ||!isMemberCompletion) {
-                    if (currentWord.length === 0 && model.getValueInRange({
-                        startLineNumber: position.lineNumber,
-                        startColumn: requestColumn - 5,
-                        endLineNumber: position.lineNumber,
-                        endColumn: requestColumn -1
-                    }) === "impl") {
-                        suggests = suggests.concat(this.traits);
-                    } else {
-                        suggests = suggests.concat(this.keywords)
-                            .concat(this.basicTypes)
-                            .concat(this.macros);
-
-                    }
                 }
                 return [
                     {
