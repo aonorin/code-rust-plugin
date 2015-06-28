@@ -23,3 +23,5 @@ You can use "debug" to output logs in the console.
 I have trouble making the racer autocomplete work with the rust pre-defined syntax... pull requests are welcome !
 
 As racer takes a file path, you need to save before ctrl+spacing.
+
+You can use ctrl+click to see the definition of the object.
