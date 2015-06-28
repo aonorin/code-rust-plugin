@@ -6,18 +6,14 @@
 define(["require", "exports", 'monaco', 'child_process', 'path', './features/configuration'],
     function (require, exports, monaco, cp, path, Configuration) {
         var RustServiceClient = (function () {
-            function RustServiceClient() {
+            function RustServiceClient(logger) {
                 this.pathSeparator = path.sep;
                 this.cfg = Configuration.defaultConfiguration;
-            }
-            RustServiceClient.prototype.log = function (msg) {
-                if (this.cfg.debug) {
-                    console.log("RustServiceClient: " + msg);
-                }
+                this.logger = logger;
             }
             RustServiceClient.prototype.setConfiguration = function (cfg) {
                 this.cfg = cfg;
-                this.log('Racer Path="' + this.cfg.racerPath + "'");
+                this.logger.log('Racer Path="' + this.cfg.racerPath + "'");
             }
             RustServiceClient.prototype.asyncCtor = function () {
                 return this.service();
@@ -36,10 +32,10 @@ define(["require", "exports", 'monaco', 'child_process', 'path', './features/con
             };
             RustServiceClient.prototype.execute = function (args) {
                 var _this = this;
-                this.log('Sending request ' + args + '.');
+                this.logger.log('Sending request ' + args + '.');
                 var res = cp.execFileSync(this.cfg.racerPath, args);
                 if (res.error !== undefined) {
-                    this.log('Error: ' + res.error);
+                    this.logger.log('Error: ' + res.error);
                 }
                 var lines = res.toString().split('\n');
                 var matches = new Array();
@@ -52,12 +48,15 @@ define(["require", "exports", 'monaco', 'child_process', 'path', './features/con
                         var parts = line.substr(firstSpace + 1).split(",");
                         var name = parts[0];
                         var rustKind = parts[4];
-                        _this.log("match: '" + name + "' racerKind=" + rustKind);
+                        _this.logger.log("match: '" + name + "' racerKind=" + rustKind);
                         //racer sometime returns doublons...
                         if (matchNames.indexOf(name)<0) {
                             matches[i] = {
                                 name: name,
-                                kind: rustKind
+                                kind: rustKind,
+                                line: parseInt(parts[1]),
+                                column: parseInt(parts[2]),
+                                file: parts[3]
                             };
                             matchNames.push(name);
                             i++;

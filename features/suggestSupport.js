@@ -4,16 +4,16 @@
 /// <reference path="../../declares.d.ts" />
 'use strict';
 define(["require", "exports", 'vs/languages/lib/javascriptSnippets',
-    'monaco', './configuration'],
-    function (require, exports, monaco, Snippets, Configuration) {
+    'monaco'],
+    function (require, exports, monaco, Snippets) {
         var SuggestSupport = (function () {
             function SuggestSupport(ctx, client) {
                 this.triggerCharacters = ['.'];
                 this.excludeTokens = ['string', 'comment', 'numeric'];
                 this.sortBy = [{ type: 'reference', partSeparator: '/' }];
                 this.modelService = ctx.modelService;
+                this.logger = ctx.logger;
                 this.client = client;
-                this.config = Configuration.defaultConfiguration;
                 this.kinds = new Map();
                 this.kinds.set('Function', 'function');
                 this.kinds.set('Struct', 'class');
@@ -100,7 +100,7 @@ define(["require", "exports", 'vs/languages/lib/javascriptSnippets',
                     'u32',
                     'u64',
                     'u8',
-                    'usize', 
+                    'usize',
                     'Box',
                     'Option',
                     'Path',
@@ -207,14 +207,6 @@ define(["require", "exports", 'vs/languages/lib/javascriptSnippets',
                     });
                 }
             }
-            SuggestSupport.prototype.setConfiguration = function (config) {
-                this.config = config;
-            };
-            SuggestSupport.prototype.log = function (msg) {
-                if (this.config.debug) {
-                    console.log("Rust.SuggestSupport: " + msg);
-                }
-            };
             SuggestSupport.prototype.suggest = function (resource, position) {
                 var filepath = this.client.asAbsolutePath(resource);
                 var model = this.modelService.getModel(resource);
@@ -289,7 +281,7 @@ define(["require", "exports", 'vs/languages/lib/javascriptSnippets',
                 ];
             };
             SuggestSupport.prototype.getSuggestionDetails = function (resource, position, suggestion) {
-                var _this = this;
+                this.logger.log("Suggestion details : " + suggestion.type);
                 //if (suggestion.type === 'snippet') {
                 return monaco.Promise.as(suggestion);
                 //}
