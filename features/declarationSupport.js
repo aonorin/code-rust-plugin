@@ -9,13 +9,15 @@ define(["require", "exports", 'monaco'], function (require, exports, monaco) {
             this.tokens = [];
             this.client = client;
             this.logger = ctx.logger;
+            this.modelService = ctx.modelService;
         }
         DeclarationSupport.prototype.findDeclaration = function (resource, position) {
             var file = this.client.asAbsolutePath(resource);
+            var model = this.modelService.getModel(resource);
             if (!file) {
                 return monaco.Promise.as(null);
             }
-            var res = this.client.execute([
+            var res = this.client.saveAndExec(model, [
                 "find-definition",
                 position.lineNumber,
                 position.column - 1,

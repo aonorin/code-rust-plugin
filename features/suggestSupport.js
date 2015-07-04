@@ -232,7 +232,7 @@ define(["require", "exports", 'fs',
                 }
                 // Need to capture the word at position before we send the request.
                 // The model can move forward while the request is evaluated.
-                var matches = this.client.execute([
+                var matches = this.client.saveAndExec(model, [
                     'complete',
                     position.lineNumber,
                     position.column - 1,//racer does not like end of words

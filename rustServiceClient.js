@@ -3,8 +3,8 @@
  *--------------------------------------------------------*/
 /// <reference path="../declares.d.ts" />
 'use strict';
-define(["require", "exports", 'monaco', 'child_process', 'path', './features/configuration'],
-    function (require, exports, monaco, cp, path, Configuration) {
+define(["require", "exports", 'monaco', 'child_process', 'path', 'fs', './features/configuration'],
+    function (require, exports, monaco, cp, path, fs, Configuration) {
         var RustServiceClient = (function () {
             function RustServiceClient(logger) {
                 this.pathSeparator = path.sep;
@@ -30,6 +30,22 @@ define(["require", "exports", 'monaco', 'child_process', 'path', './features/con
             RustServiceClient.prototype.asUrl = function (filepath) {
                 return new monaco.URL(monaco.URI.file(filepath));
             };
+            RustServiceClient.prototype.save = function (model, file) {
+                var content = model.getValueInRange({
+                    startLineNumber: 0,
+                    startColumn: 0,
+                    endLineNumber: 10000,
+                    endColumn: 1000
+                });
+                this.logger.log("writing " + file);
+                fs.writeFileSync(file, content);
+            }
+            RustServiceClient.prototype.saveAndExec = function (model, args) {
+                var file = args[args.length - 1] + "~";
+                args[args.length - 1] = file;
+                this.save(model, file);
+                return this.execute(args);
+            }
             RustServiceClient.prototype.execute = function (args) {
                 var _this = this;
                 this.logger.log('Sending request ' + args + '.');
@@ -50,7 +66,7 @@ define(["require", "exports", 'monaco', 'child_process', 'path', './features/con
                         var rustKind = parts[4];
                         _this.logger.log("match: '" + name + "' racerKind=" + rustKind);
                         //racer sometime returns doublons...
-                        if (matchNames.indexOf(name)<0) {
+                        if (matchNames.indexOf(name) < 0) {
                             matches[i] = {
                                 name: name,
                                 kind: rustKind,

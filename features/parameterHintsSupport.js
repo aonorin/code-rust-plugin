@@ -32,7 +32,7 @@ define(["require", "exports", 'monaco'], function (require, exports, monaco) {
                 if (line[c] == ',') paramIndex++;
             }
             var filepath = this.client.asAbsolutePath(resource);
-            var matches = this.client.execute([
+            var matches = this.client.saveAndExec(model, [
                 'complete',
                 position.lineNumber,
                 funIndex - 1,//racer does not like end of words
