@@ -3,9 +3,9 @@
  *--------------------------------------------------------*/
 /// <reference path="../../declares.d.ts" />
 'use strict';
-define(["require", "exports", 'vs/languages/lib/javascriptSnippets',
+define(["require", "exports", 'fs',
     'monaco'],
-    function (require, exports, monaco, Snippets) {
+    function (require, exports, fs, monaco) {
         var SuggestSupport = (function () {
             function SuggestSupport(ctx, client) {
                 this.triggerCharacters = ['.'];
@@ -14,6 +14,7 @@ define(["require", "exports", 'vs/languages/lib/javascriptSnippets',
                 this.modelService = ctx.modelService;
                 this.logger = ctx.logger;
                 this.client = client;
+                this.lastResults = [];
                 this.kinds = new Map();
                 this.kinds.set('Function', 'function');
                 this.kinds.set('Struct', 'class');
@@ -237,6 +238,7 @@ define(["require", "exports", 'vs/languages/lib/javascriptSnippets',
                     requestColumn - 1,//racer does not like end of words
                     filepath
                 ]);
+                this.lastResults = matches;
                 var suggests = [];
                 if (matches.length === 0 || !isMemberCompletion) {
                     if (currentWord.length === 0) {
@@ -281,18 +283,56 @@ define(["require", "exports", 'vs/languages/lib/javascriptSnippets',
                 ];
             };
             SuggestSupport.prototype.getSuggestionDetails = function (resource, position, suggestion) {
-                this.logger.log("Suggestion details : " + suggestion.type);
-                //if (suggestion.type === 'snippet') {
-                return monaco.Promise.as(suggestion);
-                //}
-                var args = {
-                    file: this.client.asAbsolutePath(resource),
-                    line: position.lineNumber,
-                    offset: position.column,
-                    entryNames: [
-                        suggestion.label
-                    ]
-                };
+                this.logger.log("Suggestion details : " + suggestion.label);
+                suggestion.documentationLabel = "";
+                suggestion.typeLabel = "";
+                if (suggestion.type == "keyword") {
+                    return suggestion;
+                }
+                //suggestion.codeSnippet = "code snippet";
+                var result = null;
+                var label = suggestion.label.trim();
+                for (var s = 0; s < this.lastResults.length; s++) {
+                    if (this.lastResults[s].name === label) {
+                        result = this.lastResults[s];
+                        break;
+                    }
+                }
+                if (result == null) {
+                    this.logger.log("not found in last suggestions");
+                    return suggestion;
+                }
+                suggestion.typeLabel = result.kind;
+                this.logger.log("reading " + result.file);
+                var data = fs.readFileSync(result.file, 'utf8').split('\n');
+                if (data.length < result.line) {
+                    this.logger.log("file too short");
+                    return suggestion;
+                }
+                var endLine = result.line - 2;
+                while (data[endLine].includes("#[")
+                    || data[endLine].includes("// NB")
+                    ) endLine--;
+                if (!data[endLine].includes("///")) {
+                    this.logger.log("no doc comment found");
+                    return suggestion;
+                }
+                var startLine = endLine;
+                while (data[startLine].includes("///")) {
+                    startLine--;
+                }
+                this.logger.log("comment = " + startLine + "->" + endLine);
+                var doc = "";
+                for (var l = startLine + 1; l <= endLine; l++) {
+                    var startComment = data[l].indexOf("///") + 4;
+                    var docLine = data[l].substr(startComment);
+                    if (docLine.indexOf("#") > 0) break;//stop on examples
+                    doc += docLine;
+                    if (doc.length > 75) break;//stop when to long to display
+                }
+                suggestion.documentationLabel = doc;
+
+                return suggestion;
             };
             return SuggestSupport;
         })();

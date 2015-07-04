@@ -4,16 +4,20 @@
 /// <reference path="../declares.d.ts" />
 'use strict';
 define(["require", "exports", 'monaco', 'child_process', 'path',
-    './features/declarationSupport', './features/suggestSupport', './features/configuration', './rustServiceClient'],
+    './features/declarationSupport', './features/suggestSupport',
+    './features/commentsSupport',
+    './features/configuration', './rustServiceClient'],
     function (require, exports, monaco, cp, path,
-        DeclarationSupport, SuggestSupport, Configuration, RustServiceClient) {
+        DeclarationSupport, SuggestSupport,
+        CommentsSupport,
+        Configuration, RustServiceClient) {
 
         var Logger = (function () {
             function Logger() {
-                this.logFun = function(msg){};
+                this.logFun = function (msg) { };
             }
             Logger.prototype.activate = function () {
-                this.logFun = function(msg) {console.log(msg);};
+                this.logFun = function (msg) { console.log(msg); };
             };
             Logger.prototype.log = function (msg) {
                 this.logFun(msg);
@@ -55,16 +59,15 @@ define(["require", "exports", 'monaco', 'child_process', 'path',
                 logger: logger
             };
             var client = new RustServiceClient(logger);
-            
+
+            monaco.Modes.CommentsSupport.register(MODE_ID, new CommentsSupport());
             /*monaco.Modes.ExtraInfoSupport.register(MODE_ID, new ExtraInfoSupport(ctx, client));
-            monaco.Modes.CommentsSupport.register(MODE_ID, new CommentsSupport());            
             monaco.Modes.OccurrencesSupport.register(MODE_ID, new OccurrencesSupport(ctx, client));
             monaco.Modes.ReferenceSupport.register(MODE_ID, new ReferenceSupport(ctx, client));
             monaco.Modes.OutlineSupport.register(MODE_ID, new OutlineSupport(ctx, client));
             monaco.Modes.ParameterHintsSupport.register(MODE_ID, new ParameterHintsSupport(ctx, client));
             monaco.Modes.RenameSupport.register(MODE_ID, new RenameSupport(ctx, client));
-            monaco.Modes.FormattingSupport.register(MODE_ID, new FormattingSupport(ctx, client));
-            monaco.Modes.NavigateTypesSupport.register(MODE_ID, new NavigateTypeSupport(ctx, client, MODE_ID));           
+            monaco.Modes.FormattingSupport.register(MODE_ID, new FormattingSupport(ctx, client));          
             new BufferSyncSupport(ctx, client, MODE_ID);*/
             // Register suggest support as soon as possible and load configuration lazily
             // TODO: Eventually support eventing on the configuration service & adopt here
