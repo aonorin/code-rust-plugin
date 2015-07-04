@@ -10,7 +10,8 @@ I went from the typescript plugin but ended up removing almost everything.
 To use clone in vs.language.rust in Code plugins folder 
 (on windows something like C:/Users/UserName/AppData/Local/Code/app-0.3.0/resources/app/plugins/vs.language.rust).
 
-As racer takes a file path, a temporary file needs to be created (ending with ~).
+As racer takes a file path, a temporary file needs to be created by the plugin.
+Sorry about that to cleanup just do a "rm *.rs.tmp".
 
 Usage
 -----

@@ -41,7 +41,7 @@ define(["require", "exports", 'monaco', 'child_process', 'path', 'fs', './featur
                 fs.writeFileSync(file, content);
             }
             RustServiceClient.prototype.saveAndExec = function (model, args) {
-                var file = args[args.length - 1] + "~";
+                var file = args[args.length - 1] + ".tmp";
                 args[args.length - 1] = file;
                 this.save(model, file);
                 return this.execute(args);
