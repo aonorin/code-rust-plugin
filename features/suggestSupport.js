@@ -235,7 +235,7 @@ define(["require", "exports", 'fs',
                 var matches = this.client.execute([
                     'complete',
                     position.lineNumber,
-                    requestColumn - 1,//racer does not like end of words
+                    position.column - 1,//racer does not like end of words
                     filepath
                 ]);
                 this.lastResults = matches;

@@ -56,7 +56,8 @@ define(["require", "exports", 'monaco', 'child_process', 'path', './features/con
                                 kind: rustKind,
                                 line: parseInt(parts[1]),
                                 column: parseInt(parts[2]),
-                                file: parts[3]
+                                file: parts[3],
+                                def: parts.slice(5).join(",")
                             };
                             matchNames.push(name);
                             i++;

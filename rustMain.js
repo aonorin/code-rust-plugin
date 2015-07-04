@@ -6,10 +6,12 @@
 define(["require", "exports", 'monaco', 'child_process', 'path',
     './features/declarationSupport', './features/suggestSupport',
     './features/commentsSupport',
+    './features/parameterHintsSupport',
     './features/configuration', './rustServiceClient'],
     function (require, exports, monaco, cp, path,
         DeclarationSupport, SuggestSupport,
         CommentsSupport,
+        ParameterHintsSupport,
         Configuration, RustServiceClient) {
 
         var Logger = (function () {
@@ -61,11 +63,11 @@ define(["require", "exports", 'monaco', 'child_process', 'path',
             var client = new RustServiceClient(logger);
 
             monaco.Modes.CommentsSupport.register(MODE_ID, new CommentsSupport());
-            /*monaco.Modes.ExtraInfoSupport.register(MODE_ID, new ExtraInfoSupport(ctx, client));
-            monaco.Modes.OccurrencesSupport.register(MODE_ID, new OccurrencesSupport(ctx, client));
+            monaco.Modes.ParameterHintsSupport.register(MODE_ID, new ParameterHintsSupport(ctx, client));
+            /*monaco.Modes.OccurrencesSupport.register(MODE_ID, new OccurrencesSupport(ctx, client));
+            monaco.Modes.ExtraInfoSupport.register(MODE_ID, new ExtraInfoSupport(ctx, client));
             monaco.Modes.ReferenceSupport.register(MODE_ID, new ReferenceSupport(ctx, client));
             monaco.Modes.OutlineSupport.register(MODE_ID, new OutlineSupport(ctx, client));
-            monaco.Modes.ParameterHintsSupport.register(MODE_ID, new ParameterHintsSupport(ctx, client));
             monaco.Modes.RenameSupport.register(MODE_ID, new RenameSupport(ctx, client));
             monaco.Modes.FormattingSupport.register(MODE_ID, new FormattingSupport(ctx, client));          
             new BufferSyncSupport(ctx, client, MODE_ID);*/
